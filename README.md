@@ -47,4 +47,7 @@ TOP=~/axion OUT_TARGET=~/axion/out VARIANT=user SIGN=1 \
   setsid nohup bash ~/itel_rs4_Axion/build-and-sign.sh > /dev/null 2>&1 < /dev/null &
 ```
 
+The JamesDSP control app is not in git: the device tree's `tools/build-jamesdsp.sh` builds it into
+`device/itel/S666LN/prebuilts/JamesDSP/`; without it AudioFX ships. `REQUIRE_JAMESDSP=1` makes its absence fatal.
+
 `SIGN=1` needs your release keys in `~/rs4-release-keys` (mode 700); they never go into a repo.
