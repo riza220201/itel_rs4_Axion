@@ -117,6 +117,12 @@ echo "   device tree $(git -C "$DT" rev-parse --short HEAD) $(git -C "$DT" log -
 
 # envsetup.sh and lunch read unset variables (ANDROID_GLOBAL_BUILD_PATHS, ...): no set -u past here.
 set +u
+# Axion's envsetup.sh runs setup_keys -> `gk -s` whenever vendor/lineage-priv/keys is absent, and does it
+# BEFORE it exports ANDROID_KEY_PATH. In a clean shell that path is empty, every write fails, nothing is
+# made (2026-11-17, first Axion build). In a shell that already carries ANDROID_KEY_PATH it would generate
+# AxionOS keys and a keys.mk making them the build's dev certificate: keys we do not hold, and which
+# sign_target_files_apks -d (test cert -> ours) leaves in place. Never inherit it; check the result below.
+unset ANDROID_KEY_PATH
 source build/envsetup.sh
 if type rom_lunch >/dev/null 2>&1; then
   rom_lunch "$VARIANT" || { echo "LUNCH_FAILED"; exit 2; }
@@ -126,6 +132,12 @@ fi
 [ "$TARGET_PRODUCT" = "$PRODUCT" ] && [ "$TARGET_RELEASE" = "$RELEASE" ] && [ "$TARGET_BUILD_VARIANT" = "$VARIANT" ] \
   || { echo "LUNCH_FAILED: got $TARGET_PRODUCT-$TARGET_RELEASE-$TARGET_BUILD_VARIANT, want $PRODUCT-$RELEASE-$VARIANT"; exit 2; }
 echo "   identity: S666LN_IDENTITY=${S666LN_IDENTITY:-<tree default>}"
+# Release signing maps the AOSP test certificates onto ours; a build signed with anything else would
+# keep that signer. Refuse before the build, not after it (sign-release's DN check would, an hour later).
+DEVCERT=$(get_build_var DEFAULT_SYSTEM_DEV_CERTIFICATE 2>/dev/null)
+[ "$DEVCERT" = build/make/target/product/security/testkey ] && [ ! -e vendor/lineage-priv/keys ] \
+  || { echo "FATAL: dev certificate is '$DEVCERT'$( [ -e vendor/lineage-priv/keys ] && echo ' and vendor/lineage-priv/keys exists'): the build would not be signed with the test keys our release signing replaces"; exit 3; }
+echo "   dev certificate: $DEVCERT (replaced by release signing)"
 date "+BUILD_START %F %T"
 J=${JOBS:+-j$JOBS}
 if [ "${KEEP_GOING:-0}" = 1 ]; then echo "KEEP_GOING=1: m -k $J"; m $J -k "$GOAL"; else m $J "$GOAL"; fi
