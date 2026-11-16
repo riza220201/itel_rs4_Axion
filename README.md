@@ -40,6 +40,8 @@ mkdir -p ~/axion && cd ~/axion
 repo init -u https://github.com/AxionAOSP/android.git -b lineage-23.2 --git-lfs --depth=1 --no-clone-bundle
 mkdir -p .repo/local_manifests && cp ~/itel_rs4_Axion/local_manifests/S666LN.xml .repo/local_manifests/
 TOP=~/axion ~/itel_rs4_Axion/sync.sh && TOP=~/axion ~/itel_rs4_Axion/tools/verify-sync.sh
+# the build refuses a device tree that is not on its branch (detached HEAD after a sync)
+repo start lineage-23.2 device/itel/S666LN device/itel/S666LN-kernel vendor/itel/S666LN
 
 TOP=~/axion OUT_TARGET=~/axion/out VARIANT=user SIGN=1 \
   setsid nohup bash ~/itel_rs4_Axion/build-and-sign.sh > /dev/null 2>&1 < /dev/null &
