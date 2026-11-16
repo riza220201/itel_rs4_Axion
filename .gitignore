@@ -1,4 +1,4 @@
-# itel RS4 (S666LN) -> AICP w16.2 build recipe. The repo is the RECIPE: local_manifests/,
+# itel RS4 (S666LN) -> AxionOS (lineage-23.2) build recipe. The repo is the RECIPE: local_manifests/,
 # sync.sh, apply-overlays.sh, the build scripts, tools/, README. Everything proprietary,
 # huge, secret or personal stays local (same rules as ~/itel_rs4_Crdroid).
 
